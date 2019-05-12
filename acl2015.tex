@@ -13,7 +13,7 @@
 \usepackage[colorlinks,linkcolor=blue]{hyperref}
 % \usepackage{cite}
 
-%\setlength\titlebox{5cm}
+% \setlength\titlebox{5cm}
 
 % You can expand the titlebox if you need extra space
 % to show all the authors. Please do not make the titlebox
@@ -56,30 +56,29 @@ Part 3.3 introduces the text processing to get a sentences list where all pronou
 
 Having the pre-processed sentences list, we will do interaction and sentiment analysis. We get a interact matrix by analyzing each sentence. And we use two different methods to get the sentiment polarity scores of the sentence. We also build the sentiment matrices to do some analysis, including clustering analysis(using scikit-learn~\cite{sklearn_api}). Part 3.4 will provide the explanation. \\
 
-%TODO: cite
+% TODO: cite
 In relation extraction part, we implement a method combining the algorithms introduced by 
 [cite paper] and [cite paper]. It works very well on the novels. We can extract a clear social relation(parent, children, siblings, etc). And we visualize the results. The details are in part 3.5 and Experiments. \\
 
-%TODO: cite
+% TODO: cite
 We do the tests on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{Pride and Prejudice}. The details of the results are shown in Experiment part.
 
-\section{Related work} % Kaili Ding
+% cite
+\section{Related work} % Yunhao Li
+Text mining on novels is an integral project instead of a single target. So we search the related work in different fields of NLP.\\
 
-The following instructions are directed to authors of papers submitted
-to ACL-2015 or accepted for publication in its proceedings. All
-authors are required to adhere to these specifications. Authors are
-required to provide a Portable Document Format (PDF) version of their
-papers. \textbf{The proceedings are designed for printing on A4
-paper.}
+In the name entity recognition(NER), there is lots of libraries provide NER API for developers to use, such as CoreNLP~\cite{corenlp}, NLTK~\cite{Loper02nltk:the}, Spacy~\cite{honnibal-johnson:2015:EMNLP}, etc. They provide a good result of NER.\\
 
-We will make more detailed instructions available at
-\url{http://acl2015.org/publication.html}. Please check this website 
-regularly.
+For the sentiment analysis, there is a lot of libraries and APIs provided by research institute or companies. Companies like Facebook, Google, Baidu, Tencent, etc, provide API 
+for sentiment analysis. However, the Google's API is not free, which means unusable for us. The APIs of Baidu and Tencent only work well on Chinese texts. When testing on English text it doesn't perform well. We finally find nltk.sentiment.vader~\cite{Vader} works well on sentiment analysis. \\
+
+Coreference resolution is an important field in NLP. The models of Clark and Manning~\cite{clark-manning-2016-deep}, based on Deep Learning, works well in our project. \\
+
+We also find several papers works well in relation extraction. For extacting the family relation and social relation, Makazhanov's work~\cite{Makazhanov2014ExtractingFR} gives us a good point. And Kokkinakis and Malm~\cite{kokkinakis-malm-2011-character} also shows a way to extract relationship in Novel.
 
 
 \section{Approaches}
-
-It is a pipeline that works on processing the novel in our work. It can be split into several parts introduced in the following sections.
+It is a integral system that works on processing the novel in our work. It can be split into several parts introduced in the following sections.
 
 \subsection{Role entity recognition and merging} % Kaili Ding
 
@@ -89,8 +88,13 @@ To extract names, we use name entity extractor in StanfordNLP library, which tag
 
 Clearly, there are too many names for us to generate a clear relationship among roles. Therefore, we decide to reduce names we have extracted. By manually looking into the names we extracted, we find that for some roles, there are many alias for them. Essentially, these alias can be classified into three types. The first type is alias from typo. For example, we have ``Quirrell" and ``Quirtell", which are obviously aliases of the same entity. The second type is alias of part of names. For example, we have both ``Harry" and ``Harry Potter" in our novel. In this case, we need find a way to merge them, otherwise, we will have both ``Harry" and ``Harry Potter" in our final results as noise. The final type is alias of nicknames of the same entity, such as ``Nicolas" and ``Nick", and ``Johnson" and ``Johnny". \\
 
-To deal with the typo alias, we can take advantage of the characteristics that the typo is only about one or at most two characters in a word, and most of the characters and their order are correct even there is a typo. We need to introduce a measure of similarity between words. We used both Soundex system and Jaro distance. The Soundex system~\cite{Soundex} is to assign a code to a word based on a set of pronunciation rule. The code consist of a letter, which is the first letter of the word, and three digits. The basic idea behind this system is we ignore vowel characters and group some consonant characters that have similar pronunciation and assign them a single digit. We stop once we get three digits on this word, or append 0 if the word cannot generate three digits. In our case, we regard two words as the same if they have the same Soundex code. The Jaro distance~\cite{Jaro} is a measure on the strings themselves. Basically, we calculate the number of matching characters in two words, and then further the proportion of matching characters in both strings. The order of matching characters should be the same, but we allow some transposition of characters whose distance is smaller than certain value in original words. The measure will generate a value between 0 and 1, and the larger the value is, the more similar the two words are. Applying both methods, we find that although Soundex system provides fewer aliases (merges more aliases), it 
+To deal with the typo alias, we can take advantage of the characteristics that the typo is only about one or at most two characters in a word, and most of the characters and their order are correct even there is a typo. We need to introduce a measure of similarity between words. We used both Soundex system and Jaro distance. The Soundex system~\cite{Soundex} is to assign a code to a word based on a set of pronunciation rule. The code consist of a letter, which is the first letter of the word, and three digits. The basic idea behind this system is we ignore vowel characters and group some consonant characters that have similar pronunciation and assign them a single digit. We stop once we get three digits on this word, or append 0 if the word cannot generate three digits. In our case, we regard two words as the same if they have the same Soundex code. The Jaro distance~\cite{Jaro} is a measure on the strings themselves. Basically, we calculate the number of matching characters in two words, and then further the proportion of matching characters in both strings. The order of matching characters should be the same, but we allow some transposition of characters whose distance is smaller than certain value in original words. The measure will generate a value between 0 and 1, and the larger the value is, the more similar the two words are. Applying both methods, we find that although Soundex system provides fewer aliases (merges more aliases), it mistakenly merges some aliases. Thus, we decide to use Jaro distance to merge aliases at last. \\
 
+To tackle aliases from part of names, we split two names by space and check whether one name contain the other. The contain here is defined as one name has all the same words in the other name in the same order. Considering the existence of typo, we use Jaro distance again when we compare two words. If one name is contained by only one other name, then we merge the contained name into the name contains it. \\
+
+For the alias of nickname, we haven't find a good way to merge them, since their pronunciation is different and similarity is low. One possible way to deal with this situation is have a dictionary of original name and nickname. However, the drawback of this solution is that the relationship among original name and nickname may not be one to one. \\
+
+Furthermore, we add other features on extraction. We keep the prefix (Mr. and Mrs.) when extracting names as an indication of the gender. There are many roles who just appear several times in a novel, and we decide to drop them by setting a threshold to make the relationship map clearer. We also distinguish the family names and prevent merging them into other names. If we don't apply this rule, ``Weasleys" will be merged into ``Ron Weasley", which is not accurate. Finally, we assign a formatted name to each group after we do the merge. We will replace aliases and pronouns in the novel with the formatted names later.
 
 \subsection{Coreference resolution} % Xiangyu Wei
 \label{sect:pdf}
@@ -106,7 +110,7 @@ In a novel, there are always some intricate plots in which two expressions refer
 \label{ssec:layout}
 
 After the previous processing, we now have a text where all the occurring pronouns replaced by a most likely name, and a name dictionary that maps all the alias of the same role to a single formatted name. Now we replaced all the names with its formatted name. Considering the situation that one name could be a sub-string of other names or words, we use a very simple but effective trick to solve this problem. \\
-First, we create a dictionary, where the keys are the alias(i.e, names occur in the novel) and the correlated values are the formatted names. Then we sorted the item of the dictionary by the length of key in descending order. Then for each line in the text, we iterate the dictionary in order and replace the word that matches the key with its value. In particular, we avoid replacing the sequences occurring as part of a word but also matching a key(e.g, "Ted", may match "created", "Don" may match "Don't", etc). We make a simple rule: we only replace the matching sequences that are not followed by an letter and not start with a double quote('"'), which works very well. \\ 
+First, we create a dictionary, where the keys are the alias(i.e, names occur in the novel) and the correlated values are the formatted names. Then we sorted the item of the dictionary by the length of key in descending order. Then for each line in the text, we iterate the dictionary in order and replace the word that matches the key with its value. In particular, we avoid replacing the sequences occurring as part of a word but also matching a key(e.g, "Ted", may match "created", "Don" may match "Don't", etc). We make a simple rule: we only replace the matching sequences that are not followed by an letter and not start with a double quote("), which works very well. \\ 
 
 Then we are going to split the text into sentences. We use NLTK and coreNLP to do this work. The list of sentences will be useful in the following sentiment analysis and relation extraction part.
 
@@ -132,7 +136,7 @@ We created several sentiment matrix based on these scores.
 \end{enumerate}
 
 %TODO: cite
-We want to mining some information out of these matrix. For a sentiment graph(matrix), there ought to exist several equivalent classes, each of which is a sub-graph. The relations inside a sub-graph should be close and the relations between different sub-graphs are sparse. So that we try the spectral clustering on the five matrices using two different sentiment score mechanism. \\
+We want to mine some information out of these matrix. For a sentiment graph(matrix), there ought to exist several equivalent classes, each of which is a sub-graph. The relations inside a sub-graph should be close and the relations between different sub-graphs are sparse. So that we try the spectral clustering on the five matrices using two different sentiment score mechanism. \\
 However, maybe because our graphs on are too sparse, the clustering doesn't really work. It will classify nearly all the roles into one single class. \\
 
 We also do some analyze on the interact matrix. First, we use Depth-First Search to traverse the graph. Then we can get several connected sub-graphs, each of which has no connection to the others. However, in the test of \textit{Harry Potter}, this method can only rules out several unimportant supporting roles. Most of the roles are all connected in a single sub-graph.
@@ -140,7 +144,7 @@ We also do some analyze on the interact matrix. First, we use Depth-First Search
 \subsection{Relationship extraction} % Xiangyu Wei
 \label{ssec:first}
 
-Most relationships between characters in a novel is 
+Most relationships between characters in a novel is hidden in the intricate plots. That is, a human reader can easily infer that two characters A and B are friends if they took an adventure together.
 
 {\bf Title}: Place the title centered at the top of the first page, in
 a 15-point bold font. (For a complete guide to font sizes and styles,
@@ -180,69 +184,6 @@ the present document. Do not include page numbers.
 {\bf Indent} when starting a new paragraph. Use 11 points for text and 
 subsection headings, 12 points for section headings and 15 points for
 the title. 
-
-\subsection{Sections}
-
-{\bf Headings}: Type and label section and subsection headings in the
-style shown on the present document.  Use numbered sections (Arabic
-numerals) in order to facilitate cross references. Number subsections
-with the section number and the subsection number separated by a dot,
-in Arabic numerals. Do not number subsubsections.
-
-{\bf Citations}: Citations within the text appear in parentheses
-as~\cite{Gusfield:97} or, if the author's name appears in the text
-itself, as Gusfield~\short{Gusfciteield:97}.  Append lowercase letters
-to the year in cases of ambiguity.  Treat double authors as
-in~\cite{Aho:72}, but write as in~\cite{Chandra:81} when more than two
-authors are involved. Collapse multiple citations as
-in~\cite{Gusfield:97,Aho:72}. Also refrain from using full citations
-as sentence constituents. We suggest that instead of
-\begin{quote}
-  ``\cite{Gusfield:97} showed that ...''
-\end{quote}
-you use
-\begin{quote}
-``Gusfield \shortcite{Gusfield:97}   showed that ...''
-\end{quote}
-
-If you are using the provided \LaTeX{} and Bib\TeX{} style files, you
-can use the command \verb|\newcite| to get ``author (year)'' citations.
-
-As reviewing will be double-blind, the submitted version of the papers
-should not include the authors' names and affiliations. Furthermore,
-self-references that reveal the author's identity, e.g.,
-\begin{quote}
-``We previously showed \cite{Gusfield:97} ...''  
-\end{quote}
-should be avoided. Instead, use citations such as 
-\begin{quote}
-``Gusfield \shortcite{Gusfield:97}
-previously showed ... ''
-\end{quote}
-
-\textbf{Please do not use anonymous citations} and do not include
-acknowledgements when submitting your papers. Papers that do not
-conform to these requirements may be rejected without review.
-
-\textbf{References}: Gather the full set of references together under
-the heading {\bf References}; place the section before any Appendices,
-unless they contain references. Arrange the references alphabetically
-by first author, rather than by order of occurrence in the text.
-Provide as complete a citation as possible, using a consistent format,
-such as the one for {\em Computational Linguistics\/} or the one in the 
-{\em Publication Manual of the American 
-Psychological Association\/}~\cite{APA:83}.  Use of full names for
-authors rather than initials is preferred.  A list of abbreviations
-for common computer science journals can be found in the ACM 
-{\em Computing Reviews\/}~\cite{ACM:83}.
-
-The \LaTeX{} and Bib\TeX{} style files provided roughly fit the
-American Psychological Association format, allowing regular citations, 
-short citations and multiple citations as described above.
-
-{\bf Appendices}: Appendices, if any, directly follow the text and the
-references (but see above).  Letter them in sequence and provide an
-informative title: {\bf Appendix A. Title of Appendix}.
 
 \section{Experiment}
 
