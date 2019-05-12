@@ -41,7 +41,7 @@
 \begin{document}
 \maketitle
 \begin{abstract} % Yunhao Li
-  We develop a system that could automatically mining the data of novels. The system includes name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. Finally, we test it on two novels and visualize the result, which shows that our system runs well.
+  We develop a system that can automatically mining the data of novels. The system includes name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. Finally, we test it on two novels and visualize the result, which shows that our system runs well.
 \end{abstract}
 
 \section{Introduction} % Yunhao Li
@@ -61,7 +61,7 @@ In relation extraction part, we implement a method combining the algorithms intr
 [cite paper] and [cite paper]. It works very well on the novels. We can extract a clear social relation(parent, children, siblings, etc). And we visualize the results. The details are in part 3.5 and Experiments. \\
 
 %TODO: cite
-We do the tests on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{prejudice and discrimination}. The details of the results are shown in Experiment part.
+We do the tests on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{Pride and Prejudice}. The details of the results are shown in Experiment part.
 
 \section{Related work} % Kaili Ding
 
@@ -87,57 +87,19 @@ The very first step of the whole pipeline is to extract names of roles in the no
 
 To extract names, we use name entity extractor in StanfordNLP library, which tags names with ``PERSON" tag. We run the extractor on the novels, and consider continuous words tagged with ``PERSON" as a name. For the novel Harry Potter, after the raw extraction, we have 228 names. \\
 
-Clearly, there are too many names for us to generate a clear relationship among roles. Therefore, we decide to reduce names we have extracted. By manually looking into the names we extracted, we find that 
+Clearly, there are too many names for us to generate a clear relationship among roles. Therefore, we decide to reduce names we have extracted. By manually looking into the names we extracted, we find that for some roles, there are many alias for them. Essentially, these alias can be classified into three types. The first type is alias from typo. For example, we have ``Quirrell" and ``Quirtell", which are obviously aliases of the same entity. The second type is alias of part of names. For example, we have both ``Harry" and ``Harry Potter" in our novel. In this case, we need find a way to merge them, otherwise, we will have both ``Harry" and ``Harry Potter" in our final results as noise. The final type is alias of nicknames of the same entity, such as ``Nicolas" and ``Nick", and ``Johnson" and ``Johnny". \\
 
-We strongly prefer that you prepare your PDF files using \LaTeX\ with
-the official ACL 2015 style file (acl2015.sty) and bibliography style
-(acl.bst). These files are available at
-\url{http://acl2015.org}. You will also find the document
-you are currently reading (acl2015.pdf) and its \LaTeX\ source code
-(acl2015.tex) on this website.
-
-You can alternatively use Microsoft Word to produce your PDF file. In
-this case, we strongly recommend the use of the Word template file
-(acl2015.dot) on the ACL 2015 website (\url{http://acl2015.org}). 
-If you have an option, we recommend that you use the \LaTeX2e version. 
-If you will be using the Microsoft Word template, we suggest that you 
-anonymize your source file so that the pdf produced does not retain your
-identity.  This can be done by removing any personal information
-from your source document properties.
-
+To deal with the typo alias, we can take advantage of the characteristics that the typo is only about one or at most two characters in a word, and most of the characters and their order are correct even there is a typo. We need to introduce a measure of similarity between words. We used both Soundex system and Jaro distance. The Soundex system~\cite{Soundex} is to assign a code to a word based on a set of pronunciation rule. The code consist of a letter, which is the first letter of the word, and three digits. The basic idea behind this system is we ignore vowel characters and group some consonant characters that have similar pronunciation and assign them a single digit. We stop once we get three digits on this word, or append 0 if the word cannot generate three digits. In our case, we regard two words as the same if they have the same Soundex code. The Jaro distance~\cite{Jaro} is a measure on the strings themselves. Basically, we calculate the number of matching characters in two words, and then further the proportion of matching characters in both strings. The order of matching characters should be the same, but we allow some transposition of characters whose distance is smaller than certain value in original words. The measure will generate a value between 0 and 1, and the larger the value is, the more similar the two words are. Applying both methods, we find that although Soundex system provides fewer aliases (merges more aliases), it 
 
 
 \subsection{Coreference resolution} % Xiangyu Wei
 \label{sect:pdf}
 
-When the names of roles have been extracted 
+When the names of roles have been extracted, we need to find out in which scenarios these characters appear in the novel. Considering most of the characters are mentioned in a novel as pronouns like ``she", ``he" or ``they", it is important to match these pronouns with the names we have extracted. That is, we need do reference resolution for the text in the novel.
 
-Please make sure that your PDF file includes all the necessary fonts
-(especially tree diagrams, symbols, and fonts with Asian
-characters). When you print or create the PDF file, there is usually
-an option in your printer setup to include none, all or just
-non-standard fonts.  Please make sure that you select the option of
-including ALL the fonts. \textbf{Before sending it, test your PDF by
-  printing it from a computer different from the one where it was
-  created.} Moreover, some word processors may generate very large PDF
-files, where each page is rendered as an image. Such images may
-reproduce poorly. In this case, try alternative ways to obtain the
-PDF. One way on some systems is to install a driver for a postscript
-printer, send your document to the printer specifying ``Output to a
-file'', then convert the file to PDF.
+First, we tried the traditional rule-based method to do reference resolution for a text. We simply go through the text and do name-entity recognition using \textbf{Spacy package in Python}. When meeting a pronoun whose reference is unknown, we just search in previous sentences and use the first entity labelled "PERSON" which can match the pronoun in gender and number. To predict the gender of a given name, we used \textbf{Clint Valentine's gender-predictor Python package}. Considering we need to do a search for almost every pronouns like ``he", ``she" or ``they", the depth of each search can not be too large. Otherwise, the time cost of the program will be unaffordable for us. When doing reference resolution for \textit{Harry Potter and the Sorcerer's Stone}, we use the maximum search depth of 3 previous sentences.
 
-It is of utmost importance to specify the \textbf{A4 format} (21 cm
-x 29.7 cm) when formatting the paper. When working with
-{\tt dvips}, for instance, one should specify {\tt -t a4}.
-Or using the command \verb|\special{papersize=210mm,297mm}| in the latex
-preamble (directly below the \verb|\usepackage| commands). Then using 
-{\tt dvipdf} and/or {\tt pdflatex} which would make it easier for some.
-
-
-Print-outs of the PDF file on A4 paper should be identical to the
-hardcopy version. If you cannot meet the above requirements about the
-production of your electronic submission, please contact the
-publication chairs as soon as possible.
+In a novel, there are always some intricate plots in which two expressions referring to the same person are quite far from each other. When there are more than 3 sentences between a pronoun and its reference, our rule-based method will not give a correct match for that pronoun. To deal with such cases, we use the mention-ranking coreference model\textbf{ described by Kevin Clark and Christopher D. Manning, EMNLP 2016.} That model can give a score to every pairs of mentions indicating their compatibility for coreference, even the distence between two mentions is quite large. We use the model provided by \textbf{a spaCy toolkit NeuralCoref}. It provided better coreference result on intricate plots than the rule-based method. In the final result, we used the mention-ranking coreference model to analyze most of the texts in a novel, and used the rule-based method to modify some obvious mistakes.
 
 
 \subsection{Text processing} % Yunhao Li
@@ -149,15 +111,36 @@ First, we create a dictionary, where the keys are the alias(i.e, names occur in 
 Then we are going to split the text into sentences. We use NLTK and coreNLP to do this work. The list of sentences will be useful in the following sentiment analysis and relation extraction part.
 
 \subsection{The analysis of interaction and sentiment between roles} % Yunhao Li
-First we need to find the sentences of interests. The program will iterate the sentences list, and gather the sentences where two or more roles show up.
+Given the sentences lists, the first thing needed is to find the sentences of interests. We want the sentences where occurs more than one roles. Using name dictionary we extract the sentences of interest and gather them together. \\
 
-\subsection{Relation extraction} % Xiangyu Wei
+Then we are going to create interaction sentences. For each sentence in this list, we will calculate the interact matrix. We give each role a unique number as its index in the matrix. If two roles $(i, j)$ occur in the same sentence, we update the matrix $interact$ as $interact[i, j] += 1; interact[j, i] += 1$. Afterwards we get the $interact$ matrix which count how many times two roles interact each other. We visualize this result in the experiments.\\
+
+%TODO: cite
+We also create the sentiment matrix in the above procedure. For each pair of roles $(i, j)$
+in the sentence, using \textbf{SentimentIntensityAnalyzer} of \textbf{NLTK} we calculate the sentiment polarity score of this sentence and get two score: $pos$ and $neg$. We use 2 different method to get the polarity score:
+\begin{enumerate}
+    \item Calculate the sentiment polarity of the whole sentences.
+    \item Using dependency tree analyze the sentence, get the root word and compute the score of this word.
+\end{enumerate}
+We created several sentiment matrix based on these scores.
+\begin{enumerate}
+    \item $interact\_pos\_mat$: the entry $[i, j]$ is the sum of the pos score between role $(i, j)$
+    \item $interact\_pos\_mat\_mean$: the entry $[i, j]$ is the mean value of the pos score between role $(i, j)$
+    \item $interact\_neg\_mat$: the entry $[i, j]$ is the sum of the neg score between role $(i, j)$
+    \item $interact\_neg\_mat\_mean$: the entry $[i, j]$ is the mean value of the neg score between role $(i, j)$
+    \item $senti\_relationship$: $interact\_pos\_mat - interact\_neg\_mat$
+\end{enumerate}
+
+%TODO: cite
+We want to mining some information out of these matrix. For a sentiment graph(matrix), there ought to exist several equivalent classes, each of which is a sub-graph. The relations inside a sub-graph should be close and the relations between different sub-graphs are sparse. So that we try the spectral clustering on the five matrices using two different sentiment score mechanism. \\
+However, maybe because our graphs on are too sparse, the clustering doesn't really work. It will classify nearly all the roles into one single class. \\
+
+We also do some analyze on the interact matrix. First, we use Depth-First Search to traverse the graph. Then we can get several connected sub-graphs, each of which has no connection to the others. However, in the test of \textit{Harry Potter}, this method can only rules out several unimportant supporting roles. Most of the roles are all connected in a single sub-graph.
+
+\subsection{Relationship extraction} % Xiangyu Wei
 \label{ssec:first}
 
-Center the title, author's name(s) and affiliation(s) across both
-columns. Do not use footnotes for affiliations. Do not include the
-paper ID number assigned during the submission process. Use the
-two-column format only when you begin the abstract.
+Most relationships between characters in a novel is 
 
 {\bf Title}: Place the title centered at the top of the first page, in
 a 15-point bold font. (For a complete guide to font sizes and styles,
@@ -208,7 +191,7 @@ in Arabic numerals. Do not number subsubsections.
 
 {\bf Citations}: Citations within the text appear in parentheses
 as~\cite{Gusfield:97} or, if the author's name appears in the text
-itself, as Gusfield~\shortcite{Gusfield:97}.  Append lowercase letters
+itself, as Gusfield~\short{Gusfciteield:97}.  Append lowercase letters
 to the year in cases of ambiguity.  Treat double authors as
 in~\cite{Aho:72}, but write as in~\cite{Chandra:81} when more than two
 authors are involved. Collapse multiple citations as
@@ -306,18 +289,18 @@ footnotes & 9 pt & \\
 
 %TODO: cite
 \section{Discussions} % Yunhao Li
-We get good results in our test overall. However, there are still some challenges needed to be faced. For the role entity recognition, it is hard to get a perfect name dictionary. We encountered situations where the several alias of the same role cannot be merged correctly. And the name prefix makes it worse. It is hard to match the "Mr. Weasley" to the one we really want to refer to. \\
+We get good results in our test overall. However, there are still some challenges needed to be faced. For the role entity recognition, it is hard to get a perfect name dictionary. We encountered situations where the several alias of the same role cannot be merged correctly. And the name prefix makes it worse. It is hard to match the "Mr. Weasley" to the one to which it truly refers. \\
 For the sentiment analysis part, using polarity score is too rough and sometimes we cannot get the correct sentiment between roles. And the clustering methods doesn't work well when the Adjacency matrix is sparse. \\
-For the novels like \textit{prejudice and discrimination}, the relation extraction works really well. But for the novels like \textit{Harry Potter and the Sorcerer's Stone}, because there are very few explicit descriptions of the social relationships in the text, the relation extraction method doesn't work as well as the former.
+For the novels like \textit{Prejudice and Discrimination}, the relation extraction works really well. But for the novels like \textit{Harry Potter and the Sorcerer's Stone}, because there are very few explicit descriptions of the social relationships in the text, the relation extraction method doesn't work as well as the former.
 
 %TODO: cite
 \section{Conclusions} % Yunhao Li
 \label{sec:length}
-We develop a system that could automatically mining the data of novels, including name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. And we test it on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{prejudice and discrimination}. The result shows that our system runs well.
+We develop a system that could automatically mining the data of novels, including name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. And we test it on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{Prejudice and Discrimination}. The result shows that our system runs well.
 
 \section*{Acknowledgments} % Yunhao Li
 
-We really appreciate the work of Stanford NLP group. Their CoreNLP and stanfordnlp library really help a lot. We are also grateful to the researchers and developers of Spacy and NLTK. Without their great job we cannot finish our work.
+We really appreciate the work of Stanford NLP group. Their CoreNLP and stanfordnlp library really help a lot. We are also grateful to the researchers and developers of Spacy and NLTK, and all the authors of the papers in our references. Without their great job we cannot finish our work.
 
 % include your own bib file like this:
 \bibliographystyle{acl}
