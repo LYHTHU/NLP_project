@@ -50,22 +50,13 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-  [To be finished]
+  We develop a system that could automatically mining the data of novels. The system includes name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. Finally, we test it on two novels and the result shows that our system runs well.
 \end{abstract}
 
 \section{Introduction}
 
-This document has been adapted from the instructions for earlier ACL
-proceedings, including those for ACL-2012 by Maggie Li and Michael
-White, those from ACL-2010 by Jing-Shing Chang and Philipp Koehn,
-those for ACL-2008 by Johanna D. Moore, Simone Teufel, James Allan,
-and Sadaoki Furui, those for ACL-2005 by Hwee Tou Ng and Kemal
-Oflazer, those for ACL-2002 by Eugene Charniak and Dekang Lin, and
-earlier ACL and EACL formats. Those versions were written by several
-people, including John Chen, Henry S. Thompson and Donald
-Walker. Additional elements were taken from the formatting
-instructions of the {\em International Joint Conference on Artificial
-  Intelligence}.
+The information extraction is an interesting field in Natural Language Processing(NLP). And text mining is an information extraction process for deriving high-quality information from text. As one of the most popular genres of literature, novel always have a lot of information between roles. Remembering all the roles and their relationships is somewhat hard for readers. A system that can help the readers understand the novel will be great. \\
+In this paper we aims at mining the sentiment and social relationships between roles of the novels. 
 
 \section{Related work}
 
@@ -149,7 +140,7 @@ publication chairs as soon as possible.
 After the previous processing, we now have a text where all the occurring pronouns replaced by a most likely name, and a name dictionary that maps all the alias of the same role to a single formatted name. Now we replaced all the names with its formatted name. Considering the situation that one name could be a sub-string of other names or words, we use a very simple but effective trick to solve this problem. \\
 First, we create a dictionary, where the keys are the alias(i.e, names occur in the novel) and the correlated values are the formatted names. Then we sorted the item of the dictionary by the length of key in descending order. Then for each line in the text, we iterate the dictionary in order and replace the word that matches the key with its value. In particular, we avoid replacing the sequences occurring as part of a word but also matching a key(e.g, "Ted", may match "created", "Don" may match "Don't", etc). We make a simple rule: we only replace the matching sequences that are not followed by an letter and not start with a double quote('"'), which works very well. \\ 
 
-Then we are going to split the text into sentences. We use NLTK to do this work. The list of sentences will be useful in the following sentiment analysis and relation extraction work.
+Then we are going to split the text into sentences. We use NLTK and coreNLP to do this work. The list of sentences will be useful in the following sentiment analysis and relation extraction part.
 
 \subsection{The analysis of interaction and sentiment between roles} % Yunhao Li
 First we need to find the sentences of interests. The program will iterate the sentences list, and gather the sentences where two or more roles show up.
@@ -308,30 +299,16 @@ footnotes & 9 pt & \\
 
 
 
-\section{Discussions}
+\section{Discussions} % Yunhao Li
 
-It is also advised to supplement non-English characters and terms
-with appropriate transliterations and/or translations
-since not all readers understand all such characters and terms.
-Inline transliteration or translation can be represented in
-the order of: original-form transliteration ``translation''.
 
 \section{Conclusions}
 \label{sec:length}
+We develop a system that could automatically mining the data of novels, including name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. And we test it on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{prejudice and discrimination}. The result shows that our system runs well.
 
-Long papers may consist of up to 8 pages of content, plus two extra
-pages for references. Short papers may consist of up to 4 pages of
-content, plus two extra pages for references.  Papers that do not
-conform to the specified length and formatting requirements may be
-rejected without review.
+\section*{Acknowledgments} % Yunhao Li
 
-
-
-\section*{Acknowledgments}
-
-The acknowledgments should go immediately before the references.  Do
-not number the acknowledgments section. Do not include this section
-when submitting your paper for review.
+We really appreciate the work of Stanford NLP group. Their CoreNLP and stanfordnlp library really help a lot. We are also grateful to the researchers and developers of Spacy and NLTK. Without their great job we cannot finish our work.
 
 % include your own bib file like this:
 %\bibliographystyle{acl}
