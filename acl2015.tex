@@ -1,18 +1,8 @@
 %
 % File acl2015.tex
-%
-% Contact: car@ir.hit.edu.cn, gdzhou@suda.edu.cn
 %%
 %% Based on the style files for ACL-2014, which were, in turn,
-%% Based on the style files for ACL-2013, which were, in turn,
-%% Based on the style files for ACL-2012, which were, in turn,
-%% based on the style files for ACL-2011, which were, in turn, 
-%% based on the style files for ACL-2010, which were, in turn, 
-%% based on the style files for ACL-IJCNLP-2009, which were, in turn,
-%% based on the style files for EACL-2009 and IJCNLP-2008...
 
-%% Based on the style files for EACL 2006 by 
-%%e.agirre@ehu.es or Sergi.Balari@uab.es
 %% and that of ACL 08 by Joakim Nivre and Noah Smith
 
 \documentclass[11pt]{article}
@@ -20,6 +10,7 @@
 \usepackage{times}
 \usepackage{url}
 \usepackage{latexsym}
+\usepackage[colorlinks,linkcolor=blue]{hyperref}
 % \usepackage{cite}
 
 %\setlength\titlebox{5cm}
@@ -45,20 +36,34 @@
   New York University \\
   {\tt kd2164@nyu.edu} \\}
 
-\date{}
+% \date{}
 
 \begin{document}
 \maketitle
-\begin{abstract}
-  We develop a system that could automatically mining the data of novels. The system includes name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. Finally, we test it on two novels and the result shows that our system runs well.
+\begin{abstract} % Yunhao Li
+  We develop a system that could automatically mining the data of novels. The system includes name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. Finally, we test it on two novels and visualize the result, which shows that our system runs well.
 \end{abstract}
 
-\section{Introduction}
+\section{Introduction} % Yunhao Li
 
 The information extraction is an interesting field in Natural Language Processing(NLP). And text mining is an information extraction process for deriving high-quality information from text. As one of the most popular genres of literature, novel always have a lot of information between roles. Remembering all the roles and their relationships is somewhat hard for readers. A system that can help the readers understand the novel will be great. \\
-In this paper we aims at mining the sentiment and social relationships between roles of the novels. 
 
-\section{Related work}
+In this paper we aims at mining the sentiment and social relationships between roles of the novels. To detect all the roles showing up in the novel, we need to do name entity recognition. Considering that every roles may have several names in one novel(e.g. Ronald Weasley, aka Ron, Ron Weasley, Mr.Weasley), we need to find a way to merge these alias and point them to the correlated role. This part will be introduced in part 3.1. \\
+
+Coreference resolution is also essential. A role in the novel may always occur with a pronoun instead of his/her real name (or alias). If we just do the search with their names, we are not able to find enough information. Part 3.2 will explain how we do coreference resolution in detail.  \\
+
+Part 3.3 introduces the text processing to get a sentences list where all pronoun replaced by the most possible correlated name, which will be replaced by its formatted name later.  \\
+
+Having the pre-processed sentences list, we will do interaction and sentiment analysis. We get a interact matrix by analyzing each sentence. And we use two different methods to get the sentiment polarity scores of the sentence. We also build the sentiment matrices to do some analysis, including clustering analysis(using scikit-learn~\cite{sklearn_api}). Part 3.4 will provide the explanation. \\
+
+%TODO: cite
+In relation extraction part, we implement a method combining the algorithms introduced by 
+[cite paper] and [cite paper]. It works very well on the novels. We can extract a clear social relation(parent, children, siblings, etc). And we visualize the results. The details are in part 3.5 and Experiments. \\
+
+%TODO: cite
+We do the tests on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{prejudice and discrimination}. The details of the results are shown in Experiment part.
+
+\section{Related work} % Kaili Ding
 
 The following instructions are directed to authors of papers submitted
 to ACL-2015 or accepted for publication in its proceedings. All
@@ -77,6 +82,12 @@ regularly.
 It is a pipeline that works on processing the novel in our work. It can be split into several parts introduced in the following sections.
 
 \subsection{Role entity recognition and merging} % Kaili Ding
+
+The very first step of the whole pipeline is to extract names of roles in the novel and merge the alias of one role as accurate as possible so that we can prevent multiple roles presenting one role in our final results. The merging step can make our results more accurate. \\
+
+To extract names, we use name entity extractor in StanfordNLP library, which tags names with ``PERSON" tag. We run the extractor on the novels, and consider continuous words tagged with ``PERSON" as a name. For the novel Harry Potter, after the raw extraction, we have 228 names. \\
+
+Clearly, there are too many names for us to generate a clear relationship among roles. Therefore, we decide to reduce names we have extracted. By manually looking into the names we extracted, we find that 
 
 We strongly prefer that you prepare your PDF files using \LaTeX\ with
 the official ACL 2015 style file (acl2015.sty) and bibliography style
@@ -99,12 +110,7 @@ from your source document properties.
 \subsection{Coreference resolution} % Xiangyu Wei
 \label{sect:pdf}
 
-For the production of the electronic manuscript you must use Adobe's
-Portable Document Format (PDF). PDF files are usually produced from
-\LaTeX\ using the \textit{pdflatex} command. If your version of
-\LaTeX\ produces Postscript files, you can convert these into PDF
-using \textit{ps2pdf} or \textit{dvipdf}. On Windows, you can also use
-Adobe Distiller to generate PDF.
+When the names of roles have been extracted 
 
 Please make sure that your PDF file includes all the necessary fonts
 (especially tree diagrams, symbols, and fonts with Asian
@@ -298,11 +304,14 @@ footnotes & 9 pt & \\
 
 
 
-
+%TODO: cite
 \section{Discussions} % Yunhao Li
+We get good results in our test overall. However, there are still some challenges needed to be faced. For the role entity recognition, it is hard to get a perfect name dictionary. We encountered situations where the several alias of the same role cannot be merged correctly. And the name prefix makes it worse. It is hard to match the "Mr. Weasley" to the one we really want to refer to. \\
+For the sentiment analysis part, using polarity score is too rough and sometimes we cannot get the correct sentiment between roles. And the clustering methods doesn't work well when the Adjacency matrix is sparse. \\
+For the novels like \textit{prejudice and discrimination}, the relation extraction works really well. But for the novels like \textit{Harry Potter and the Sorcerer's Stone}, because there are very few explicit descriptions of the social relationships in the text, the relation extraction method doesn't work as well as the former.
 
-
-\section{Conclusions}
+%TODO: cite
+\section{Conclusions} % Yunhao Li
 \label{sec:length}
 We develop a system that could automatically mining the data of novels, including name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. And we test it on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{prejudice and discrimination}. The result shows that our system runs well.
 
@@ -311,8 +320,8 @@ We develop a system that could automatically mining the data of novels, includin
 We really appreciate the work of Stanford NLP group. Their CoreNLP and stanfordnlp library really help a lot. We are also grateful to the researchers and developers of Spacy and NLTK. Without their great job we cannot finish our work.
 
 % include your own bib file like this:
-%\bibliographystyle{acl}
-%\bibliography{acl2015}
+\bibliographystyle{acl}
+\bibliography{nlp}
 
 \begin{thebibliography}{}
 
