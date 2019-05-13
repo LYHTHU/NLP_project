@@ -11,6 +11,9 @@
 \usepackage{url}
 \usepackage{latexsym}
 \usepackage[colorlinks,linkcolor=blue]{hyperref}
+\usepackage{float}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
 % \usepackage{cite}
 
 % \setlength\titlebox{5cm}
@@ -54,14 +57,11 @@ Coreference resolution is also essential. A role in the novel may always occur w
 
 Part 3.3 introduces the text processing to get a sentences list where all pronoun replaced by the most possible correlated name, which will be replaced by its formatted name later.  \\
 
-Having the pre-processed sentences list, we will do interaction and sentiment analysis. We get a interact matrix by analyzing each sentence. And we use two different methods to get the sentiment polarity scores of the sentence. We also build the sentiment matrices to do some analysis, including clustering analysis(using scikit-learn~\cite{sklearn_api}). Part 3.4 will provide the explanation. \\
+Having the pre-processed sentences list, we will do interaction and sentiment analysis. We get a interact matrix by analyzing each sentence. And we use two different methods to get the sentiment polarity scores of the sentence. We also build the sentiment matrices to do some analysis, including clustering analysis(using scikit-learn~\cite{sklearn_api}. Part 3.4 will provide the explanation. \\
 
-% TODO: cite
-In relation extraction part, we implement a method combining the algorithms introduced by 
-[cite paper] and [cite paper]. It works very well on the novels. We can extract a clear social relation(parent, children, siblings, etc). And we visualize the results. The details are in part 3.5 and Experiments. \\
+In relation extraction part, we implement a method combining the algorithms introduced by Kokkinakis~\cite{kokkinakis-malm-2011-character} and Makazhanov ~\cite{Makazhanov2014ExtractingFR}. It works very well on the novels. We can extract a clear social relation(parent, children, siblings, etc). And we visualize the results. The details are in part 3.5 and Experiments. \\
 
-% TODO: cite
-We do the tests on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{Pride and Prejudice}. The details of the results are shown in Experiment part.
+We do the tests on two novels, \textit{Harry Potter and the Sorcerer's Stone}~\cite{harrypotter} and \textit{Pride and Prejudice}~\cite{pride}. The details of the results are shown in Experiment part.
 
 % cite
 \section{Related work} % Yunhao Li
@@ -84,7 +84,7 @@ It is a integral system that works on processing the novel in our work. It can b
 
 The very first step of the whole pipeline is to extract names of roles in the novel and merge the alias of one role as accurate as possible so that we can prevent multiple roles presenting one role in our final results. The merging step can make our results more accurate. \\
 
-To extract names, we use name entity extractor in StanfordNLP library, which tags names with ``PERSON" tag. We run the extractor on the novels, and consider continuous words tagged with ``PERSON" as a name. For the novel Harry Potter, after the raw extraction, we have 228 names. \\
+To extract names, we use name entity extractor in StanfordNLP library~\cite{stanfordnlp}, which tags names with ``PERSON" tag. We run the extractor on the novels, and consider continuous words tagged with ``PERSON" as a name. For the novel Harry Potter, after the raw extraction, we have 228 names. \\
 
 Clearly, there are too many names for us to generate a clear relationship among roles. Therefore, we decide to reduce names we have extracted. By manually looking into the names we extracted, we find that for some roles, there are many alias for them. Essentially, these alias can be classified into three types. The first type is alias from typo. For example, we have ``Quirrell" and ``Quirtell", which are obviously aliases of the same entity. The second type is alias of part of names. For example, we have both ``Harry" and ``Harry Potter" in our novel. In this case, we need find a way to merge them, otherwise, we will have both ``Harry" and ``Harry Potter" in our final results as noise. The final type is alias of nicknames of the same entity, such as ``Nicolas" and ``Nick", and ``Johnson" and ``Johnny". \\
 
@@ -101,18 +101,18 @@ Furthermore, we add other features on extraction. We keep the prefix (Mr. and Mr
 
 When the names of roles have been extracted, we need to find out in which scenarios these characters appear in the novel. Considering most of the characters are mentioned in a novel as pronouns like ``she", ``he" or ``they", it is important to match these pronouns with the names we have extracted. That is, we need do reference resolution for the text in the novel.
 
-First, we tried the traditional rule-based method to do reference resolution for a text. We simply go through the text and do name-entity recognition using \textbf{Spacy package in Python}. When meeting a pronoun whose reference is unknown, we just search in previous sentences and use the first entity labelled "PERSON" which can match the pronoun in gender and number. To predict the gender of a given name, we used \textbf{Clint Valentine's gender-predictor Python package}. Considering we need to do a search for almost every pronouns like ``he", ``she" or ``they", the depth of each search can not be too large. Otherwise, the time cost of the program will be unaffordable for us. When doing reference resolution for \textit{Harry Potter and the Sorcerer's Stone}, we use the maximum search depth of 3 previous sentences.
+First, we tried the traditional rule-based method to do reference resolution for a text. We simply go through the text and do name-entity recognition using Spacy package in Python~\cite{honnibal-johnson:2015:EMNLP}. When meeting a pronoun whose reference is unknown, we just search in previous sentences and use the first entity labelled ``PERSON" which can match the pronoun in gender and number. To predict the gender of a given name, we used Clint Valentine's gender-predictor Python package~\cite{gender_predictor}. Considering we need to do a search for almost every pronouns like ``he", ``she" or ``they", the depth of each search can not be too large. Otherwise, the time cost of the program will be unaffordable for us. When doing reference resolution for \textit{Harry Potter and the Sorcerer's Stone}, we use the maximum search depth of 3 previous sentences.
 
-In a novel, there are always some intricate plots in which two expressions referring to the same person are quite far from each other. When there are more than 3 sentences between a pronoun and its reference, our rule-based method will not give a correct match for that pronoun. To deal with such cases, we use the mention-ranking coreference model\textbf{ described by Kevin Clark and Christopher D. Manning, EMNLP 2016.} That model can give a score to every pairs of mentions indicating their compatibility for coreference, even the distence between two mentions is quite large. We use the model provided by \textbf{a spaCy toolkit NeuralCoref}. It provided better coreference result on intricate plots than the rule-based method. In the final result, we used the mention-ranking coreference model to analyze most of the texts in a novel, and used the rule-based method to modify some obvious mistakes.
+In a novel, there are always some intricate plots in which two expressions referring to the same person are quite far from each other. When there are more than 3 sentences between a pronoun and its reference, our rule-based method will not give a correct match for that pronoun. To deal with such cases, we use the mention-ranking coreference model described by Kevin Clark and Christopher D. Manning~\cite{clark-manning-2016-deep}. That model can give a score to every pairs of mentions indicating their compatibility for coreference, even the distance between two mentions is quite large. We use the model provided by a spaCy toolkit NeuralCoref~\cite{neuralcoref}. It provided better coreference result on intricate plots than the rule-based method. In the final result, we used the mention-ranking coreference model to analyze most of the texts in a novel, and used the rule-based method to modify some obvious mistakes.
 
 
 \subsection{Text processing} % Yunhao Li
 \label{ssec:layout}
 
 After the previous processing, we now have a text where all the occurring pronouns replaced by a most likely name, and a name dictionary that maps all the alias of the same role to a single formatted name. Now we replaced all the names with its formatted name. Considering the situation that one name could be a sub-string of other names or words, we use a very simple but effective trick to solve this problem. \\
-First, we create a dictionary, where the keys are the alias(i.e, names occur in the novel) and the correlated values are the formatted names. Then we sorted the item of the dictionary by the length of key in descending order. Then for each line in the text, we iterate the dictionary in order and replace the word that matches the key with its value. In particular, we avoid replacing the sequences occurring as part of a word but also matching a key(e.g, "Ted", may match "created", "Don" may match "Don't", etc). We make a simple rule: we only replace the matching sequences that are not followed by an letter and not start with a double quote("), which works very well. \\ 
+First, we create a dictionary, where the keys are the alias(i.e, names occur in the novel) and the correlated values are the formatted names. Then we sorted the item of the dictionary by the length of key in descending order. Then for each line in the text, we iterate the dictionary in order and replace the word that matches the key with its value. In particular, we avoid replacing the sequences occurring as part of a word but also matching a key(e.g, ``Ted", may match ``created", ``Don" may match ``Don't", etc). We make a simple rule: we only replace the matching sequences that are not followed by an letter and not start with a double quote("), which works very well. \\ 
 
-Then we are going to split the text into sentences. We use NLTK and coreNLP to do this work. The list of sentences will be useful in the following sentiment analysis and relation extraction part.
+Then we are going to split the text into sentences. We use NLTK\cite{Loper02nltk:the} and coreNLP~\cite{corenlp} to do this work. The list of sentences will be useful in the following sentiment analysis and relation extraction part.
 
 \subsection{The analysis of interaction and sentiment between roles} % Yunhao Li
 Given the sentences lists, the first thing needed is to find the sentences of interests. We want the sentences where occurs more than one roles. Using name dictionary we extract the sentences of interest and gather them together. \\
@@ -121,7 +121,7 @@ Then we are going to create interaction sentences. For each sentence in this lis
 
 %TODO: cite
 We also create the sentiment matrix in the above procedure. For each pair of roles $(i, j)$
-in the sentence, using \textbf{SentimentIntensityAnalyzer} of \textbf{NLTK} we calculate the sentiment polarity score of this sentence and get two score: $pos$ and $neg$. We use 2 different method to get the polarity score:
+in the sentence, using SentimentIntensityAnalyzer of NLTK~\cite{Loper02nltk:the} we calculate the sentiment polarity score of this sentence and get two score: $pos$ and $neg$. We use 2 different method to get the polarity score:
 \begin{enumerate}
     \item Calculate the sentiment polarity of the whole sentences.
     \item Using dependency tree analyze the sentence, get the root word and compute the score of this word.
@@ -139,145 +139,103 @@ We created several sentiment matrix based on these scores.
 We want to mine some information out of these matrix. For a sentiment graph(matrix), there ought to exist several equivalent classes, each of which is a sub-graph. The relations inside a sub-graph should be close and the relations between different sub-graphs are sparse. So that we try the spectral clustering on the five matrices using two different sentiment score mechanism. \\
 However, maybe because our graphs on are too sparse, the clustering doesn't really work. It will classify nearly all the roles into one single class. \\
 
-We also do some analyze on the interact matrix. First, we use Depth-First Search to traverse the graph. Then we can get several connected sub-graphs, each of which has no connection to the others. However, in the test of \textit{Harry Potter}, this method can only rules out several unimportant supporting roles. Most of the roles are all connected in a single sub-graph.
+We also do some analyze on the interact matrix. First, we use Depth-First Search to traverse the graph. Then we can get several connected sub-graphs, each of which has no connection to the others. However, in the test of \textit{Harry Potter}~\cite{harrypotter}, this method can only rules out several unimportant supporting roles. Most of the roles are all connected in a single sub-graph. \\
+
+%cite
+We also try to apply Prim's Minimum Spanning Tree~\cite{prim} algorithm on the sentiment and interact matrix. We redefine the weights of an edge as its additive inverse. So actually we are finding a Maximum Spanning Tree. First we put the role with the most occurrence into a list called $major$. Then we repeat finding the largest edge $(i, j)$ in the graph, where $i$ is in the $major$ and $j$ isn't. We keep running until the stop requirement is met. We use the stop condition that if the size of $major$ is larger than a threshold then we stop. This works well in finding the most major roles.
+
 
 \subsection{Relationship extraction} % Xiangyu Wei
 \label{ssec:first}
 
-Most relationships between characters in a novel is hidden in the intricate plots. That is, a human reader can easily infer that two characters A and B are friends if they took an adventure together.
+Most relationships between characters in a novel are hidden in the intricate plots. That is, a human reader can easily infer that two characters A and B who took an adventure together are friends. But for computer program, it is difficult to extract such a relationship. Thus in our project, we just extracted the relationships that are clearly declared in the novel. For example, we only infer A and B are friends when there are sentences like ``A is a friend of B" or ```B is my friend,' A said" in the novel.
 
-{\bf Title}: Place the title centered at the top of the first page, in
-a 15-point bold font. (For a complete guide to font sizes and styles,
-see Table~\ref{font-table}) Long titles should be typed on two lines
-without a blank line intervening. Approximately, put the title at 2.5
-cm from the top of the page, followed by a blank line, then the
-author's names(s), and the affiliation on the following line. Do not
-use only initials for given names (middle initials are allowed). Do
-not format surnames in all capitals (e.g., use ``Schlangen'' not
-``SCHLANGEN'').  Do not format title and section headings in all
-capitals as well except for proper names (such as ``BLEU'') that are
-conventionally in all capitals.  The affiliation should contain the
-author's complete address, and if possible, an electronic mail
-address. Start the body of the first page 7.5 cm from the top of the
-page.
+Our method for extracting the relationships has the following three steps, we will discuss the three steps in detail.
+\begin{enumerate}
+    \item Dialogues Extraction: go through the entire novel, extract all the dialogues and record the speaker and listener for each utterances in the dialogues.
+    \item Relationship Detection: analyze the dialogues and narratives separately, detect all the relationships that are declared clearly.
+    \item Relationship Inference: analyze the relationships we found in last step, and infer new relationships from the results.
+\end{enumerate}
 
-The title, author names and addresses should be completely identical
-to those entered to the electronical paper submission website in order
-to maintain the consistency of author information among all
-publications of the conference. If they are different, the publication
-chairs may resolve the difference without consulting with you; so it
-is in your own interest to double-check that the information is
-consistent.
+{\bf Dialogues Extraction}: As we can see in the above example, even some relationship is declared clearly in a novel, it can be presented differently when mentioned in narratives or in characters' dialogues. Thus our first step is to extract all the dialogues, as well as find the speakers and listeners of these dialogues.
 
-{\bf Abstract}: Type the abstract at the beginning of the first
-column. The width of the abstract text should be smaller than the
-width of the columns for the text in the body of the paper by about
-0.6 cm on each side. Center the word {\bf Abstract} in a 12 point bold
-font above the body of the abstract. The abstract should be a concise
-summary of the general thesis and conclusions of the paper. It should
-be no longer than 200 words. The abstract text should be in 10 point font.
+In most novels, an utterance from a character is enclosed in a couple of quotation marks. So we just detect quotation marks when going through the whole text. If we meet quotation mark two times, we will infer the text between them is an utterance.
 
-{\bf Text}: Begin typing the main body of the text immediately after
-the abstract, observing the two-column format as shown in 
-the present document. Do not include page numbers.
+When an utterance of a dialogue is extracted, we want to know its speaker and listener. First we will check the context of the utterance. If there are some narratives like ``said A" or ``A replied" following the utterance, where A is a name in our pre-extracted dictionary of all characters' names, we will infer that A is the speaker of the utterance. Then we will check the utterance itself. If there are some vocatives like ``My dear B, ..." or ``B, you ..." in the utterance, we will infer that B is the listener of the utterance. Sometimes we meet continuous dialogues and there are no obvious speaker and listener in context. Then we will use the speaker of last utterance as the listener of the current utterance, and use the listener of last utterance as the speaker of the current utterance. 
 
-{\bf Indent} when starting a new paragraph. Use 11 points for text and 
-subsection headings, 12 points for section headings and 15 points for
-the title. 
+{\bf Relationship Detection}: Now we have extracted all the dialogues of a novel, it is easy to analyze the dialogues and narratives separately. 
 
-\section{Experiment}
+To detect relationships between characters in narratives, we get some ideas from Kokkinakis and Malm's work~\cite{kokkinakis-malm-2011-character}. First, we do coreference resolution for all the narrative sentences, and extract the sentences that have two or more different characters. For these sentences, we detect the target words in the text between or near the characters. The target words are the words about relationship, like "son", "mother" or "sister". If we can find such a target word, and the target word is near to both characters, it is safe to infer the two characters have a relationship implied by the target word. In fact, most of these sentences are like ``A, son of B, ...". Thus the relationship is obvious.
 
-Following ACL 2014 we will also we will attempt to automatically convert 
-your \LaTeX\ source files to publish papers in machine-readable 
-XML with semantic markup in the ACL Anthology, in addition to the 
-traditional PDF format.  This will allow us to create, over the next 
-few years, a growing corpus of scientific text for our own future research, 
-and picks up on recent initiatives on converting ACL papers from earlier 
-years to XML. 
+To detect relationships in dialogues, we just detect the vocatives in the utterances. If there are some target words appear in the vocative of an utterance, then it is safe to infer that the relationship between speaker and listener is implied by the target word. For example, if an utterance is like ``Mom, ...", it is possible that the listener is speaker's mother. We also used the similar method used for narrative sentences: extract the sentences that have two or more characters. When doing such extraction, we can just see the first-person pronouns as the speaker.
 
-We encourage you to submit a ZIP file of your \LaTeX\ sources along
-with the camera-ready version of your paper. We will then convert them
-to XML automatically, using the LaTeXML tool
-(\url{http://dlmf.nist.gov/LaTeXML}). LaTeXML has \emph{bindings} for
-a number of \LaTeX\ packages, including the ACL 2015 stylefile. These
-bindings allow LaTeXML to render the commands from these packages
-correctly in XML. For best results, we encourage you to use the
-packages that are officially supported by LaTeXML, listed at
-\url{http://dlmf.nist.gov/LaTeXML/manual/included.bindings}
+{\bf Relationship Inference}: When we have detect some relationships from the text, it is necessary to do some inference to add new relationships and delete incorrect relationships. We get some ideas of such inference from Makazhanov’s work~\cite{Makazhanov2014ExtractingFR}. We do the relationship inference with the following rules:
+\begin{enumerate}
+    \item If A is B's sister/brother and B is C's sister/brother, then A is C's sister/brother.
+    \item If A is B's mother/father and B is C's sister/brother, then A is C's mother/father.
+    \item If there are text as "Mr. and Mrs. A" in the novel, then Mr. A is Mrs. A's husband, Mrs. A is Mr. A's wife.
+    \item If the gender of some character in a relationship is obviously incorrect, delete that relationship.
+\end{enumerate}
 
-\begin{table}[h]
-\begin{center}
-\begin{tabular}{|l|rl|}
-\hline \bf Type of Text & \bf Font Size & \bf Style \\ \hline
-paper title & 15 pt & bold \\
-author names & 12 pt & bold \\
-author affiliation & 12 pt & \\
-the word ``Abstract'' & 12 pt & bold \\
-section titles & 12 pt & bold \\
-document text & 11 pt  &\\
-captions & 11 pt & \\
-abstract text & 10 pt & \\
-bibliography & 10 pt & \\
-footnotes & 9 pt & \\
-\hline
-\end{tabular}
-\end{center}
-\caption{\label{font-table} Font guide. }
-\end{table}
+After the inference with these rules
 
 
 
 
-%TODO: cite
+\section{Evaluation} % Kaili Ding
+\subsection{Relation Extraction}
+    Based on the work mentioned before, we extracted the interactions and relationships in \textit{Harry Potter and the Sorcerer's Stone}~\cite{harrypotter}.
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/int_hp.png}
+        \caption{Interactions in Harry Potter and the Sorcerer's Stone}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/hp1_1.png}
+        \caption{Relationships of Weasleys family}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/hp1_2.png}
+        \caption{Relationships of Dursleys family}
+    \end{figure}
+    Since there is no available standard for us to do a quantitative evaluation, we look at the graphs we generate to do a rough evaluation. We find that for interactions part, the accuracy among main characters are close to the real situation in the novel. For the relations part, the relationship among Weasleys and Dursleys are precise. Therefore, the work we have done meets our expectation. For more detailed results, please refer to \href{github.io}{our Github}.
+
+\subsection{Sentiment analysis}
+    We visualize the sentiment matrix between roles as heatmap.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/pos_mean.jpg}
+        \caption{Mean value of positive score in Harry Potter and the Sorcerer's Stone}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/neg_mean.jpg}
+        \caption{Mean value of negative score in Harry Potter and the Sorcerer's Stone}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/senti_pos_neg_mean.jpg}
+        \caption{Mean value of the difference between positive and negative score in Harry Potter and the Sorcerer's Stone}
+    \end{figure}
+
 \section{Discussions} % Yunhao Li
-We get good results in our test overall. However, there are still some challenges needed to be faced. For the role entity recognition, it is hard to get a perfect name dictionary. We encountered situations where the several alias of the same role cannot be merged correctly. And the name prefix makes it worse. It is hard to match the "Mr. Weasley" to the one to which it truly refers. \\
+We get good results in our test overall. However, there are still some challenges needed to be faced. For the role entity recognition, it is hard to get a perfect name dictionary. We encountered situations where the several alias of the same role cannot be merged correctly. Nicknames contribute a lot to the inaccuracy. One possible way to deal with this situation is have a dictionary of original names and nicknames. The name prefix makes it even worse. We can extract ``Mr. Weasley", but is hard to match the ``Mr. Weasley" to the one to which it truly refers (whether it refers to Ron Weasley or George Weasley). \\
 For the sentiment analysis part, using polarity score is too rough and sometimes we cannot get the correct sentiment between roles. And the clustering methods doesn't work well when the Adjacency matrix is sparse. \\
-For the novels like \textit{Prejudice and Discrimination}, the relation extraction works really well. But for the novels like \textit{Harry Potter and the Sorcerer's Stone}, because there are very few explicit descriptions of the social relationships in the text, the relation extraction method doesn't work as well as the former.
+For the novels like \textit{Pride and Prejudice}~\cite{pride}, the relation extraction works really well. But for the novels like \textit{Harry Potter and the Sorcerer's Stone}~\cite{harrypotter}, because there are very few explicit descriptions of the social relationships in the text, the relation extraction method doesn't work as well as the former.
 
-%TODO: cite
 \section{Conclusions} % Yunhao Li
 \label{sec:length}
-We develop a system that could automatically mining the data of novels, including name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. And we test it on two novels, \textit{Harry Potter and the Sorcerer's Stone} and \textit{Prejudice and Discrimination}. The result shows that our system runs well.
+We develop a system that could automatically mining the data of novels, including name entity recognition and merging, coreference resolution, interaction and sentiment analysis and relation extraction. And we test it on two novels, \textit{Harry Potter and the Sorcerer's Stone}~\cite{harrypotter} and \textit{Pride and Prejudice}~\cite{pride}. The result shows that our system runs well.
 
 \section*{Acknowledgments} % Yunhao Li
 
-We really appreciate the work of Stanford NLP group. Their CoreNLP and stanfordnlp library really help a lot. We are also grateful to the researchers and developers of Spacy and NLTK, and all the authors of the papers in our references. Without their great job we cannot finish our work.
+We really appreciate the work of Stanford NLP group. Their CoreNLP~\cite{corenlp} and stanfordnlp library~\cite{stanfordnlp} really help a lot. We are also grateful to the researchers and developers of Spacy~\cite{honnibal-johnson:2015:EMNLP} and NLTK~\cite{Loper02nltk:the}, and all the authors of the papers in our references. Without their great job we cannot finish our work.
 
 % include your own bib file like this:
 \bibliographystyle{acl}
 \bibliography{nlp}
-
-\begin{thebibliography}{}
-
-\bibitem[\protect\citename{Aho and Ullman}1972]{Aho:72}
-Alfred~V. Aho and Jeffrey~D. Ullman.
-\newblock 1972.
-\newblock {\em The Theory of Parsing, Translation and Compiling}, volume~1.
-\newblock Prentice-{Hall}, Englewood Cliffs, NJ.
-
-\bibitem[\protect\citename{{American Psychological Association}}1983]{APA:83}
-{American Psychological Association}.
-\newblock 1983.
-\newblock {\em Publications Manual}.
-\newblock American Psychological Association, Washington, DC.
-
-\bibitem[\protect\citename{{Association for Computing Machinery}}1983]{ACM:83}
-{Association for Computing Machinery}.
-\newblock 1983.
-\newblock {\em Computing Reviews}, 24(11):503--512.
-
-\bibitem[\protect\citename{Chandra \bgroup et al.\egroup }1981]{Chandra:81}
-Ashok~K. Chandra, Dexter~C. Kozen, and Larry~J. Stockmeyer.
-\newblock 1981.
-\newblock Alternation.
-\newblock {\em Journal of the Association for Computing Machinery},
-  28(1):114--133.
-
-\bibitem[\protect\citename{Gusfield}1997]{Gusfield:97}
-Dan Gusfield.
-\newblock 1997.
-\newblock {\em Algorithms on Strings, Trees and Sequences}.
-\newblock Cambridge University Press, Cambridge, UK.
-\end{thebibliography}
 
 \end{document}
