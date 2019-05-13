@@ -174,10 +174,10 @@ To detect relationships in dialogues, we just detect the vocatives in the uttera
     \item If A is B's sister/brother and B is C's sister/brother, then A is C's sister/brother.
     \item If A is B's mother/father and B is C's sister/brother, then A is C's mother/father.
     \item If there are text as "Mr. and Mrs. A" in the novel, then Mr. A is Mrs. A's husband, Mrs. A is Mr. A's wife.
-    \item If the gender of some character in a relationship is obviously incorrect, delete that relationship.
+    \item If the gender of some character in a relationship is obviously incorrect, delete that relationship. For example, if we found some "Mr.A" is a sister of someone, we will delete this relationship of "sister".
 \end{enumerate}
 
-After the inference with these rules
+After the inference with these rules, we will get the final relationships network between the characters in the novel.
 
 
 
@@ -201,7 +201,12 @@ After the inference with these rules
         \includegraphics[width=\linewidth]{images/hp1_2.png}
         \caption{Relationships of Dursleys family}
     \end{figure}
-    Since there is no available standard for us to do a quantitative evaluation, we look at the graphs we generate to do a rough evaluation. We find that for interactions part, the accuracy among main characters are close to the real situation in the novel. For the relations part, the relationship among Weasleys and Dursleys are precise. Therefore, the work we have done meets our expectation. For more detailed results, please refer to \href{github.io}{our Github}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\linewidth]{images/int_pap.png}
+        \caption{Interactions in Pride and Prejudice}
+    \end{figure}
+    Since there is no available standard for us to do a quantitative evaluation, we look at the graphs we generate to do a rough evaluation. We find that for interactions part, the accuracy among main characters are close to the real situation in the novel. For the relations part, the relationship among Weasleys and Dursleys are precise. Therefore, the work we have done meets our expectation. For more detailed results, please refer to \href{https://weixiangyu14.github.io/}{our Github}.
 
 \subsection{Sentiment analysis}
     We visualize the sentiment matrix between roles as heatmap.
@@ -220,11 +225,24 @@ After the inference with these rules
         \includegraphics[width=\linewidth]{images/senti_pos_neg_mean.jpg}
         \caption{Mean value of the difference between positive and negative score in Harry Potter and the Sorcerer's Stone}
     \end{figure}
-
+    We can easily find that the connection of the relation graph is very sparse. \\
+    The spectral clustering on sentiment matrices and interact matrix doesn't work well. \\
+    
+    For the interaction matrix analysis part, when applying Prim Minimal Spanning Tree Algorithm~\cite{prim} on the intereact matrix, the top-5 roles are: \\
+    \begin{itemize}
+        \item POTTER
+        \item HARRY\_POTTER
+        \item RON
+        \item HERMIONE\_GRANGER
+        \item HAGRID
+    \end{itemize}
+    which is close to the major roles in novel.
+    
 \section{Discussions} % Yunhao Li
 We get good results in our test overall. However, there are still some challenges needed to be faced. For the role entity recognition, it is hard to get a perfect name dictionary. We encountered situations where the several alias of the same role cannot be merged correctly. Nicknames contribute a lot to the inaccuracy. One possible way to deal with this situation is have a dictionary of original names and nicknames. The name prefix makes it even worse. We can extract ``Mr. Weasley", but is hard to match the ``Mr. Weasley" to the one to which it truly refers (whether it refers to Ron Weasley or George Weasley). \\
+For the coreference resolution, the great time cost for this process made it hard to increase the accuracy. When doing rule-based search for each pronoun, we just search for three previous sentences and it always took five to ten minutes to process the entire novel. Even with the mention-ranking coreference model, the time cost did nor decrease.
 For the sentiment analysis part, using polarity score is too rough and sometimes we cannot get the correct sentiment between roles. And the clustering methods doesn't work well when the Adjacency matrix is sparse. \\
-For the novels like \textit{Pride and Prejudice}~\cite{pride}, the relation extraction works really well. But for the novels like \textit{Harry Potter and the Sorcerer's Stone}~\cite{harrypotter}, because there are very few explicit descriptions of the social relationships in the text, the relation extraction method doesn't work as well as the former.
+For the novels like \textit{Pride and Prejudice}~\cite{pride}, the relation extraction works really well. But for the novels like \textit{Harry Potter and the Sorcerer's Stone}~\cite{harrypotter}, because there are very few explicit descriptions of the social relationships in the text, the relation extraction method doesn't work as well as the former. In our result above, we just extracted the family relationships of Weasleys and Dursleys. However, the most important relationship in the novel, Ron, Harry and Hermione's friendship, was ignored. To extract such relationships that are not mentioned in novel directly, we need to find some method to handle 
 
 \section{Conclusions} % Yunhao Li
 \label{sec:length}
